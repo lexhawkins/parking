@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Parking Management System</title>
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+background:#0f172a;
+color:white;
+text-align:center;
+margin:0;
+}
+
+header{
+background:#1e3a8a;
+padding:20px;
+font-size:28px;
+font-weight:bold;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+margin-top:30px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+margin:20px;
+border-radius:10px;
+box-shadow:0px 0px 10px rgba(0,0,0,0.4);
+}
+
+input{
+padding:10px;
+margin:10px;
+border-radius:5px;
+border:none;
+width:200px;
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:5px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#3b82f6;
+}
+
+#spots{
+font-size:22px;
+margin-top:10px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th{
+background:#1d4ed8;
+padding:10px;
+}
+
+td{
+background:#334155;
+padding:10px;
+}
+
+tr:nth-child(even) td{
+background:#475569;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+Parking Management System
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Park Vehicle</h2>
+
+<input id="parkId" placeholder="Vehicle ID">
+
+<br>
+
+<button onclick="parkVehicle()">Park Vehicle</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>Remove Vehicle</h2>
+
+<input id="removeId" placeholder="Vehicle ID">
+
+<br>
+
+<button onclick="removeVehicle()">Remove Vehicle</button>
+
+</div>
+
+
+<div class="card">
+
+<h2>Available Spots</h2>
+
+<button onclick="getSpots()">Check Spots</button>
+
+<p id="spots"></p>
+
+</div>
+
+
+<div class="card">
+
+<h2>Vehicles</h2>
+
+<button onclick="loadVehicles()">Refresh Vehicles</button>
+
+<table>
+
+<thead>
+<tr>
+<th>Vehicle ID</th>
+<th>Entry Time</th>
+<th>Exit Time</th>
+<th>Parked</th>
+<th>Parking Fee</th>
+</tr>
+</thead>
+
+<tbody id="vehicleTable">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<script>
+
+const API = "http://localhost:8080/api"
+
+
+async function parkVehicle(){
+
+let id = document.getElementById("parkId").value
+
+await fetch(API + "/vehicles/park",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({vehicleId:id})
+
+})
+
+loadVehicles()
+
+getSpots()
+
+}
+
+
+async function removeVehicle(){
+
+let id = document.getElementById("removeId").value
+
+await fetch(API + "/vehicles/remove",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({vehicleId:id})
+
+})
+
+loadVehicles()
+
+getSpots()
+
+}
+
+
+async function getSpots(){
+
+let res = await fetch(API + "/spots")
+
+let data = await res.json()
+
+document.getElementById("spots").innerText =
+"Available spots: " + data.availableSpots
+
+}
+
+
+async function loadVehicles(){
+
+let res = await fetch(API + "/vehicles")
+
+let vehicles = await res.json()
+
+let table = document.getElementById("vehicleTable")
+
+table.innerHTML=""
+
+vehicles.forEach(v => {
+
+let row = `
+<tr>
+<td>${v.vehicleId}</td>
+<td>${v.entryTime ?? ""}</td>
+<td>${v.exitTime ?? ""}</td>
+<td>${v.parked}</td>
+<td>${v.parkingFee ?? 0}</td>
+</tr>
+`
+
+table.innerHTML += row
+
+})
+
+}
+
+loadVehicles()
+
+</script>
+
+</body>
+
+</html>
